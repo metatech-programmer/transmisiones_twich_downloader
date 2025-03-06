@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const downloadsList = document.getElementById('downloads-list');
     const noDownloadsText = document.getElementById('no-downloads');
     
-    const API_BASE_URL = 'http://localhost:10000/api';
+    const API_BASE_URL = 'http://localhost:3000/api';
     
     // Cargar descargas previas y actualizar en tiempo real
     loadDownloads();
