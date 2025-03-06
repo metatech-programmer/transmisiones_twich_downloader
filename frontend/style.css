@@ -1,0 +1,335 @@
+:root {
+    --primary-color: #9146ff;
+    --primary-dark: #7d2ff5;
+    --background-color: #60369f;
+    --card-color: #e5dee7;
+    --text-color: #161616;
+    --border-color: #dedede;
+    --success-color: #4caf50;
+    --error-color: #f44336;
+    --info-color: #2196f3;
+    --warning-color: #ff9800;
+    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-family);
+    color: var(--text-color);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin: 0;
+    background-image: url('https://www.mgravish.com/wp-content/uploads/2019/09/Wordmark-Loop.gif');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: center;
+    background-blend-mode: overlay;
+    background-color: #00000049;
+}
+
+.container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+    width: 100%;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+h1 {
+    color: var(--card-color);
+    margin-bottom: 10px;
+    font-size: 2rem;
+}
+
+.subtitle {
+    color: #ffffff;
+    font-size: 1rem;
+    margin-bottom: 20px;
+}
+
+main {
+    background-color: var(--card-color);
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+    max-width: 800px;
+    width: 100%;
+    margin: 20px auto;
+}
+
+.input-section {
+    margin-bottom: 30px;
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+input[type="text"], select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border 0.3s;
+}
+
+input[type="text"]:focus, select:focus {
+    border-color: var(--primary-color);
+    outline: none;
+}
+
+button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 14px 24px;
+    font-size: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    display: block;
+    width: 100%;
+    font-weight: bold;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+ margin-top: 1rem;
+}
+
+button:hover {
+    background-color: var(--primary-dark);
+    transform: scale(1.05);
+}
+
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.status-section {
+    margin-bottom: 30px;
+}
+
+#status {
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+#status.success {
+    background-color: #e8f5e9;
+    border-left: 4px solid var(--success-color);
+}
+
+#status.error {
+    background-color: #ffebee;
+    border-left: 4px solid var(--error-color);
+}
+
+#status.info {
+    background-color: #e3f2fd;
+    border-left: 4px solid var(--info-color);
+}
+
+#status.warning {
+    background-color: #fff3e0;
+    border-left: 4px solid var(--warning-color);
+}
+
+.hidden {
+    display: none;
+}
+
+.progress-container {
+    margin-top: 20px;
+}
+
+.progress-label {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 5px;
+}
+
+.progress-bar {
+    height: 8px;
+    background-color: #eee;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress {
+    height: 100%;
+    background-color: var(--primary-color);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.download-section {
+    margin-top: 10px;
+    border-radius: 12px;
+    overflow-y: scroll;
+    max-height: 150px;
+}
+
+
+.download-section h2 {
+    margin-bottom: 15px;
+    font-size: 1.25rem;
+}
+
+.download-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.download-info {
+    flex: 1;
+}
+
+.download-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.download-meta {
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.download-actions a {
+    display: inline-block;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: background-color 0.3s;
+}
+
+.download-actions a:hover {
+    background-color: var(--primary-dark);
+}
+
+.guide {
+    background-color: var(--card-color);
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+}
+
+.guide h2 {
+    margin-bottom: 15px;
+    font-size: 1.25rem;
+}
+
+.guide ol {
+    margin-left: 20px;
+    margin-bottom: 20px;
+}
+
+.guide li {
+    margin-bottom: 10px;
+}
+
+.note {
+    font-style: italic;
+    color: #666;
+}
+
+footer {
+    text-align: center;
+    color: #ffffff70;
+    font-size: 0.875rem;
+    padding: 20px 0;
+}
+
+@media (max-width: 768px) {
+    .options {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    main {
+        padding: 20px;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    .subtitle {
+        font-size: 0.875rem;
+    }
+
+    .download-section h2 {
+        font-size: 1rem;
+    }
+
+    .download-actions a {
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 10px;
+    }
+
+    input[type="text"], select {
+        padding: 10px;
+        font-size: 0.875rem;
+    }
+
+    button {
+        font-size: 1rem;
+        padding: 12px;
+    }
+}
+
+
+::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #888;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: #555;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}

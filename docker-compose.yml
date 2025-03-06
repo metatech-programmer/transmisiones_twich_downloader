@@ -1,0 +1,11 @@
+services:
+  twitch-downloader:
+    build: .
+    container_name: twitch-downloader
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend/downloads:/app/backend/downloads
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
