@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const quality = qualitySelect.value;
         const format = formatSelect.value;
         
-        if (!streamUrl || !isValidTwitchUrl(streamUrl)) {
+        if (!isValidTwitchUrl(streamUrl)) {
             showStatus('Por favor, ingresa una URL válida de Twitch.', 'error');
             return;
         }
@@ -39,7 +39,11 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.json())
         .then(data => {
-            trackDownloadProgress(data.downloadId);
+            if (data.downloadId) {
+                trackDownloadProgress(data.downloadId);
+            } else {
+                throw new Error(data.message || 'Error desconocido');
+            }
         })
         .catch(error => {
             showStatus(`Error: ${error.message}`, 'error');
@@ -59,26 +63,63 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function trackDownloadProgress(downloadId) {
-        const progressInterval = setInterval(() => {
-            fetch(`${API_BASE_URL}/status/${downloadId}`)
-                .then(response => response.json())
-                .then(data => {
-                    progressBar.style.width = `${data.progress}%`;
-                    progressText.textContent = `${data.progress}%`;
-                    
-                    if (data.status === 'completed') {
-                        clearInterval(progressInterval);
-                        showStatus('¡Descarga completada!', 'success');
-                        downloadBtn.disabled = false;
-                        loadDownloads();
-                    } else if (data.status === 'failed') {
-                        clearInterval(progressInterval);
-                        showStatus(`Error: ${data.error || 'Error desconocido'}`, 'error');
-                        downloadBtn.disabled = false;
-                    }
-                })
-                .catch(error => console.error('Error al obtener el estado:', error));
-        }, 2000);
+        let failedAttempts = 0;
+        const maxFailedAttempts = 3;
+        
+        const progressInterval = setInterval(async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/status/${downloadId}`);
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+                
+                const data = await response.json();
+                
+                // Actualizar progreso
+                const progress = Math.min(Math.round(data.progress), 100);
+                progressBar.style.width = `${progress}%`;
+                progressText.textContent = `${progress}%`;
+                
+                // Verificar estado
+                if (data.status === 'completed') {
+                    clearInterval(progressInterval);
+                    showStatus('¡Descarga completada!', 'success');
+                    downloadBtn.disabled = false;
+                    loadDownloads();
+                    return;
+                } else if (data.status === 'failed') {
+                    clearInterval(progressInterval);
+                    showStatus(`Error: ${data.error || 'Error desconocido'}`, 'error');
+                    downloadBtn.disabled = false;
+                    return;
+                }
+                
+                // Resetear contador de intentos fallidos si llegamos aquí
+                failedAttempts = 0;
+                
+            } catch (error) {
+                console.error('Error al obtener el estado:', error);
+                failedAttempts++;
+                
+                if (failedAttempts >= maxFailedAttempts) {
+                    clearInterval(progressInterval);
+                    showStatus('Error: Se perdió la conexión con el servidor', 'error');
+                    downloadBtn.disabled = false;
+                }
+            }
+        }, 1000); // Actualizar cada segundo en lugar de cada 2 segundos
+        
+        // Guardar el ID del intervalo para limpieza
+        download.intervalId = progressInterval;
+    }
+    
+    // Añadir función para limpiar intervalos antiguos
+    function clearDownloadInterval(downloadId) {
+        const download = activeDownloads.get(downloadId);
+        if (download?.intervalId) {
+            clearInterval(download.intervalId);
+            delete download.intervalId;
+        }
     }
     
     function loadDownloads() {

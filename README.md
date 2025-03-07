@@ -224,6 +224,22 @@ npm run build        # Construir para producción
 npm start           # Iniciar en producción
 ```
 
+### Ejecutar Tests
+
+Para ejecutar los tests del backend:
+
+```bash
+cd backend
+npm run test
+```
+
+Para ejecutar los tests del frontend:
+
+```bash
+cd frontend
+npm run test
+```
+
 ## 📝 Documentación API
 
 ### Endpoints
