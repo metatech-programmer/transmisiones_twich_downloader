@@ -305,19 +305,6 @@ Este proyecto está bajo la Licencia MIT - vea el archivo [LICENSE](LICENSE) par
 * [Streamlink](https://streamlink.github.io/) por su excelente herramienta
 * [FFmpeg](https://ffmpeg.org/) por hacer posible el procesamiento de video
 
-## 📈 Historial de Versiones
-
-* **1.0.0** (2024-01-15)
-  * Primera versión estable
-  * Soporte básico de descarga
-
-* **1.1.0** (2024-01-30)
-  * Añadido soporte para múltiples formatos
-  * Mejoras en la interfaz de usuario
-
-* **1.2.0** (2024-02-15)
-  * Soporte para diferentes calidades
-  * Optimización de rendimiento
 
 ## 🔍 Solución de Problemas
 
