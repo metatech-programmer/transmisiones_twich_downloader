@@ -293,7 +293,7 @@ Obtiene el estado de una descarga
 
 ## 📄 Licencia
 
-Este proyecto está bajo la Licencia MIT - vea el archivo [LICENSE](LICENSE) para más detalles.
+Este proyecto está bajo la Licencia Personalizada. Consulta el archivo [LICENSE](LICENSE) para más detalles.
 
 ## 👥 Autores
 
