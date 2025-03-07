@@ -4,13 +4,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const qualitySelect = document.getElementById('quality');
     const formatSelect = document.getElementById('format');
     const statusElement = document.getElementById('status');
-    const progressContainer = document.getElementById('progress-container');
-    const progressBar = document.getElementById('progress-bar');
-    const progressText = document.getElementById('progress-text');
+    const loader = document.getElementById('loader');
     const downloadsList = document.getElementById('downloads-list');
     const noDownloadsText = document.getElementById('no-downloads');
     
-    const API_BASE_URL = 'http://localhost:3000/api';
+    const API_BASE_URL = 'http://localhost:8091/api';
+    const activeDownloads = new Map(); // Add this line to define activeDownloads
     
     // Cargar descargas previas y actualizar en tiempo real
     loadDownloads();
@@ -28,9 +27,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         downloadBtn.disabled = true;
         showStatus('Iniciando descarga...', 'info');
-        progressContainer.classList.remove('hidden');
-        progressBar.style.width = '0%';
-        progressText.textContent = '0%';
         
         fetch(`${API_BASE_URL}/download`, {
             method: 'POST',
@@ -40,6 +36,8 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.downloadId) {
+                showStatus('Descargando video...', 'info');
+                loader.classList.remove('hidden');
                 trackDownloadProgress(data.downloadId);
             } else {
                 throw new Error(data.message || 'Error desconocido');
@@ -48,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             showStatus(`Error: ${error.message}`, 'error');
             downloadBtn.disabled = false;
-            progressContainer.classList.add('hidden');
+            loader.classList.add('hidden');
         });
     });
     
@@ -75,22 +73,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 const data = await response.json();
                 
-                // Actualizar progreso
-                const progress = Math.min(Math.round(data.progress), 100);
-                progressBar.style.width = `${progress}%`;
-                progressText.textContent = `${progress}%`;
+                // Asegúrate de que los valores sean números válidos
+                const downloadedSize = parseInt(data.downloadedSize, 10);
+                const totalSize = parseInt(data.totalSize, 10);
+                
+                if (!isNaN(downloadedSize) && !isNaN(totalSize) && totalSize > 0) {
+                    // Actualizar progreso
+                    const progress = Math.min(Math.round((downloadedSize / totalSize) * 100), 100);
+                    showStatus(`Descargando video en progreso... %`, 'info');
+                } else {
+                    showStatus('Descargando video... ', 'info');
+                }
                 
                 // Verificar estado
                 if (data.status === 'completed') {
                     clearInterval(progressInterval);
                     showStatus('¡Descarga completada!', 'success');
                     downloadBtn.disabled = false;
+                    loader.classList.add('hidden');
                     loadDownloads();
                     return;
                 } else if (data.status === 'failed') {
                     clearInterval(progressInterval);
                     showStatus(`Error: ${data.error || 'Error desconocido'}`, 'error');
                     downloadBtn.disabled = false;
+                    loader.classList.add('hidden');
                     return;
                 }
                 
@@ -105,12 +112,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     clearInterval(progressInterval);
                     showStatus('Error: Se perdió la conexión con el servidor', 'error');
                     downloadBtn.disabled = false;
+                    loader.classList.add('hidden');
                 }
             }
         }, 1000); // Actualizar cada segundo en lugar de cada 2 segundos
         
         // Guardar el ID del intervalo para limpieza
-        download.intervalId = progressInterval;
+        activeDownloads.set(downloadId, { intervalId: progressInterval });
     }
     
     // Añadir función para limpiar intervalos antiguos
@@ -118,7 +126,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const download = activeDownloads.get(downloadId);
         if (download?.intervalId) {
             clearInterval(download.intervalId);
-            delete download.intervalId;
+            activeDownloads.delete(downloadId); // Update this line to delete the entry from the map
         }
     }
     
@@ -154,4 +162,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const date = new Date(dateString);
         return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
     }
+    
+    // Ocultar el loader al inicio
+    loader.classList.add('hidden');
 });

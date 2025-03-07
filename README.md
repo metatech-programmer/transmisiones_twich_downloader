@@ -25,7 +25,7 @@ La aplicación está diseñada con una arquitectura moderna y separada en fronte
 
 - **Interfaz Intuitiva**:
   - Diseño responsive
-  - Indicador de progreso en tiempo real
+  - Interfaz de usuario intuitiva
   - Historial de descargas
   - Vista previa de streams
 
@@ -105,6 +105,10 @@ La aplicación está diseñada con una arquitectura moderna y separada en fronte
    En Windows:
    - Descarga Streamlink desde [streamlink.github.io](https://streamlink.github.io/)
    - Descarga FFmpeg desde [ffmpeg.org](https://ffmpeg.org/)
+  
+### Metodo 1.1: Utilizar .bat para arrancar la aplicación luego de la instalación
+
+Puede darle click al archivo `twich.bat` en el directorio raíz del proyecto con el objetivo de arrancar la aplicación luego de la instalación de todos los progrramas o paquetes necesarios, para su buen funcionamiento.
 
 ### Método 2: Instalación con Docker
 
@@ -117,6 +121,8 @@ La aplicación está diseñada con una arquitectura moderna y separada en fronte
    ```bash
    docker-compose ps
    ```
+
+
 
 ## 💻 Uso
 
@@ -138,9 +144,15 @@ La aplicación está diseñada con una arquitectura moderna y separada en fronte
    npm start
    ```
 
+3. **Acceder a la Aplicación**:
+   Abre tu navegador y navega a http://localhost:8091
+
+
+
+
 ### Descargar Contenido
 
-1. Abra la aplicación en su navegador (http://localhost:3000)
+1. Abra la aplicación en su navegador (http://localhost:8091)
 2. Pegue la URL del contenido de Twitch
 3. Seleccione la calidad y formato deseados
 4. Haga clic en "Iniciar Descarga"
@@ -165,7 +177,7 @@ https://clips.twitch.tv/ClipName
 Cree un archivo `.env` en el directorio `backend`:
 
 ```env
-PORT=3000
+PORT=8091
 NODE_ENV=development
 DOWNLOAD_DIR=./downloads
 MAX_CONCURRENT_DOWNLOADS=3
@@ -183,7 +195,7 @@ services:
     environment:
       - NODE_ENV=production
     ports:
-      - "3000:3000"
+      - "8091:8091"
     volumes:
       - ./downloads:/app/downloads
 ```
@@ -313,7 +325,7 @@ Este proyecto está bajo la Licencia MIT - vea el archivo [LICENSE](LICENSE) par
 
 1. **Error: Puerto en uso**
    ```bash
-   sudo lsof -i :3000
+   sudo lsof -i :8091
    kill -9 PID
    ```
 

@@ -25,7 +25,7 @@ WORKDIR /app
 RUN mkdir -p backend/downloads
 
 # Exponer el puerto en el que se ejecuta el servidor
-EXPOSE 3000
+EXPOSE 8091
 
 # Comando para ejecutar la aplicación
 CMD ["node", "backend/server.js"]

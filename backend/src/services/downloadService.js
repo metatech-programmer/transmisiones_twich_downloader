@@ -26,6 +26,8 @@ export function setupProcessHandlers(process, downloadId, quality, activeDownloa
     const download = activeDownloads.get(downloadId);
     let lastProgress = 0;
     let isCompleted = false;
+    let totalSize = 0;
+    let downloadedSize = 0;
     
     // Capturar salida estándar para extraer progreso
     process.stdout.on('data', (data) => {
@@ -40,6 +42,18 @@ export function setupProcessHandlers(process, downloadId, quality, activeDownloa
                 lastProgress = progress;
                 download.info.progress = progress;
             }
+        }
+
+        // Detectar tamaño total y descargado
+        const sizeMatch = output.match(/Total size: (\d+) bytes/);
+        if (sizeMatch) {
+            totalSize = parseInt(sizeMatch[1], 10);
+        }
+        const downloadedMatch = output.match(/Downloaded: (\d+) bytes/);
+        if (downloadedMatch) {
+            downloadedSize = parseInt(downloadedMatch[1], 10);
+            download.info.downloadedSize = downloadedSize;
+            download.info.totalSize = totalSize;
         }
 
         // Detectar finalización
@@ -81,7 +95,7 @@ export function setupProcessHandlers(process, downloadId, quality, activeDownloa
                     format: path.extname(download.info.outputPath).substring(1),
                     size: videoInfo.size,
                     duration: videoInfo.duration,
-                    downloadUrl: `../../downloads/${path.basename(download.info.outputPath)}`,
+                    downloadUrl: `/downloads/${path.basename(download.info.outputPath)}`,
                     date: new Date().toISOString()
                 });
                 

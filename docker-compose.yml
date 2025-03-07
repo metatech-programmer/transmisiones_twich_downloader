@@ -4,12 +4,12 @@ services:
     build: .
     container_name: twitch-downloader
     ports:
-      - "3000:3000"
+      - "8091:8091"
     volumes:
       - ./backend/downloads:/app/backend/downloads
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - PORT=3000
+      - PORT=8091
       - DOWNLOAD_DIR=/app/backend/downloads
       - MAX_CONCURRENT_DOWNLOADS=3

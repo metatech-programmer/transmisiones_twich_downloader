@@ -51,7 +51,7 @@ docker-compose up -d
 
 ## Acceso a la aplicación
 
-La aplicación estará disponible en: [http://localhost:3000](http://localhost:3000)
+La aplicación estará disponible en: [http://localhost:8091](http://localhost:8091)
 
 ## Datos persistentes
 
@@ -62,7 +62,7 @@ Los videos descargados se almacenan en el directorio `backend/downloads` de tu s
 Si encuentras algún problema:
 
 1. Verifica los logs con `docker-compose logs -f`
-2. Asegúrate de que los puertos necesarios (3000) no estén siendo utilizados por otros servicios
+2. Asegúrate de que los puertos necesarios (8091) no estén siendo utilizados por otros servicios
 3. Verifica que streamlink y ffmpeg se hayan instalado correctamente dentro del contenedor:
    ```bash
    docker exec -it twitch-downloader sh -c "streamlink --version && ffmpeg -version"
