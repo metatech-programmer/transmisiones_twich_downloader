@@ -1,101 +1,131 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Descargador de transmisiones de Twitch. Descarga transmisiones de cualquier canal en diferentes calidades y formatos.">
-    <meta name="author" content="Federico Falzone">
-    <meta name="keywords" content="twitch, stream, downloader, descargador, transmisiones, videos, grabador, record, online">
-    <meta property="og:title" content="Twitch Stream Downloader">
-    <meta property="og:description" content="Descargador de transmisiones de Twitch. Descarga transmisiones de cualquier canal en diferentes calidades y formatos.">
-    <meta property="og:url" content="https://twitch-stream-downloader.netlify.app/">
-    <meta property="og:image" content="https://twitch-stream-downloader.netlify.app/icon.png">
-    <meta property="og:type" content="website">
-    <meta property="og:locale" content="es_ES">
-    <link rel="shortcut icon" href="icon.png" type="image/png">
-    <link rel="icon" href="icon.png" type="image/png">
-    <link rel="stylesheet" href="style.css">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Descargador de transmisiones de Twitch. Descarga transmisiones de cualquier canal en diferentes calidades y formatos."
+    />
+    <meta name="author" content="Federico Falzone" />
+    <meta
+      name="keywords"
+      content="twitch, stream, downloader, descargador, transmisiones, videos, grabador, record, online"
+    />
+    <meta property="og:title" content="Twitch Stream Downloader" />
+    <meta
+      property="og:description"
+      content="Descargador de transmisiones de Twitch. Descarga transmisiones de cualquier canal en diferentes calidades y formatos."
+    />
+    <meta
+      property="og:url"
+      content="https://twitch-stream-downloader.netlify.app/"
+    />
+    <meta
+      property="og:image"
+      content="https://twitch-stream-downloader.netlify.app/icon.png"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_ES" />
+    <link rel="shortcut icon" href="icon.png" type="image/png" />
+    <link rel="icon" href="icon.png" type="image/png" />
+    <link rel="stylesheet" href="style.css" />
     <title>Twitch Stream Downloader</title>
-</head>
-<body>
-    <div class="container">'
-        
-        <header>
-            <h1>Descargador de Transmisiones de Twitch</h1>
-            <p class="subtitle">Descarga transmisiones de cualquier canal</p>
-        </header>
+  </head>
+  <body>
+    <div class="container">
+      '
 
-        <main>
-            <section class="input-section">
-                <div class="input-group">
-                    <label for="streamUrl">URL de la transmisión o canal:</label>
-                    <input type="text" id="streamUrl" placeholder="https://www.twitch.tv/nombrecanal o https://www.twitch.tv/videos/123456789" required  onclick="this.select();">
-                </div>
+      <header>
+        <h1>Descargador de Transmisiones de Twitch</h1>
+        <p class="subtitle">Descarga transmisiones de cualquier canal</p>
+      </header>
 
-                <div class="options">
-                    <div class="option-group">
-                        <label for="quality">Calidad:</label>
-                        <select id="quality">
-                            <option value="best">Mejor calidad</option>
-                            <option value="720p">720p</option>
-                            <option value="480p">480p</option>
-                            <option value="360p">360p</option>
-                        </select>
-                    </div>
+      <main>
+       
+        <section class="input-section">
+          <div class="input-group">
+            <label for="streamUrl">URL de la transmisión o canal:</label>
+            <input
+              type="text"
+              id="streamUrl"
+              placeholder="https://www.twitch.tv/nombrecanal o https://www.twitch.tv/videos/123456789"
+              required
+              onclick="this.select();"
+            />
+          </div>
 
-                    <div class="option-group">
-                        <label for="format">Formato:</label>
-                        <select id="format">
-                            <option value="mp4">MP4</option>
-                            <option value="mkv">MKV</option>
-                            <option value="ts">TS</option>
-                        </select>
-                    </div>
-                </div>
+          <div class="options">
+            <div class="option-group">
+              <label for="quality">Calidad:</label>
+              <select id="quality">
+                <option value="best">Mejor calidad</option>
+                <option value="720p">720p</option>
+                <option value="480p">480p</option>
+                <option value="360p">360p</option>
+              </select>
+            </div>
 
-                <button id="downloadBtn">Iniciar Descarga</button>
-            </section>
+            <div class="option-group">
+              <label for="format">Formato:</label>
+              <select id="format">
+                <option value="mp4">MP4</option>
+                <option value="mkv">MKV</option>
+                <option value="ts">TS</option>
+              </select>
+            </div>
+          </div>
 
-            <section class="status-section">
-                <div id="status" class="hidden"></div>
-                <div id="progress-container" class="hidden">
-                    <div class="progress-label">
-                        <span id="progress-text">0%</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress" id="progress-bar"></div>
-                    </div>
-                </div>
-                <div id="loader" class="hidden">
-                    <div class="spinner"></div>
-                </div>
-            </section>
-
-            <h2>Descargas Recientes</h2>
-            <section class="download-section">
-                <div id="downloads-list">
-                    <p id="no-downloads">No hay descargas recientes</p>
-                </div>
-            </section>
-        </main>
-
-        <section class="guide">
-            <h2>Cómo usar esta herramienta</h2>
-            <ol>
-                <li>Ingresa la URL de la transmisión (VOD) o del canal en vivo</li>
-                <li>Selecciona la calidad y formato deseados</li>
-                <li>Haz clic en "Iniciar Descarga"</li>
-                <li>Espera a que se complete la descarga</li>
-                <li>Descarga el archivo desde el enlace proporcionado</li>
-            </ol>
-            <p class="note">Nota: Las transmisiones largas pueden tardar un tiempo considerable en procesarse.</p>
+          <button id="downloadBtn">Iniciar Descarga</button>
         </section>
 
-        <footer>
-            <p>Esta herramienta es para uso personal y educativo. Respeta los términos de servicio de Twitch y los derechos de autor de los creadores.</p>
-        </footer>
+        <section class="status-section">
+          <div id="status" class="hidden"></div>
+          <div id="progress-container" class="hidden">
+            <div class="progress-label">
+              <span id="progress-text">0%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress" id="progress-bar"></div>
+            </div>
+          </div>
+          <div id="loader" class="hidden">
+            <div class="spinner"></div>
+          </div>
+        </section>
+
+        <h2>Descargas Recientes</h2>
+        <section class="download-section">
+          <div id="downloads-list">
+            <p id="no-downloads">No hay descargas recientes</p>
+          </div>
+        </section>
+      </main>
+
+      <section class="guide">
+        <h2>Cómo usar esta herramienta</h2>
+        <ol>
+          <li>Ingresa la URL de la transmisión (VOD) o del canal en vivo</li>
+          <li>Selecciona la calidad y formato deseados</li>
+          <li>Haz clic en "Iniciar Descarga"</li>
+          <li>Espera a que se complete la descarga</li>
+          <li>Descarga el archivo desde el enlace proporcionado</li>
+        </ol>
+        <p class="note">
+          Nota: Las transmisiones largas pueden tardar un tiempo considerable en
+          procesarse.
+        </p>
+      </section>
+
+      <footer>
+        <p>
+          Esta herramienta es para uso personal y educativo. Respeta los
+          términos de servicio de Twitch y los derechos de autor de los
+          creadores.
+        </p>
+      </footer>
     </div>
 
     <script src="main.js"></script>
-</body>
+  </body>
 </html>

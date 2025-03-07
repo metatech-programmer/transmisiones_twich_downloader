@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
+    "start": "node server.js --host 0.0.0.0 --port 8091",
+    "dev": "nodemon server.js --host 0.0.0.0 --port 8091",
     "test": "jest"
   },
   "dependencies": {

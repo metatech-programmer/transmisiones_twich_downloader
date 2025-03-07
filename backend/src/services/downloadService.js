@@ -99,9 +99,9 @@ export function setupProcessHandlers(process, downloadId, quality, activeDownloa
                     date: new Date().toISOString()
                 });
                 
-                // Limitar a 20 descargas recientes
-                if (downloadsData.downloads.length > 20) {
-                    downloadsData.downloads = downloadsData.downloads.slice(0, 20);
+                // Limitar a 3 descargas recientes
+                if (downloadsData.downloads.length > 5) {
+                    downloadsData.downloads = downloadsData.downloads.slice(0, 5);
                 }
                 
                 fs.writeFileSync(DOWNLOADS_DB, JSON.stringify(downloadsData));
