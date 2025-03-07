@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
 import path from 'path';
-import { processStreamUrl } from '../../utils/twitch-utils.js';
+import { processStreamUrl } from '../utils/twitch-utils.js';
 import { startDownload, setupProcessHandlers } from '../services/downloadService.js';
 import config from '../../config/index.js';
 

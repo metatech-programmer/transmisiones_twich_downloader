@@ -1,7 +1,7 @@
 import { spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import { extractVideoInfo } from '../../utils/twitch-utils.js';
+import { extractVideoInfo } from '../utils/twitch-utils.js';
 
 // Función para iniciar descarga con streamlink
 export function startDownload(url, outputPath, quality, format) {

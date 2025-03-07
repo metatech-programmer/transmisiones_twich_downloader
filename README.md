@@ -108,7 +108,7 @@ La aplicación está diseñada con una arquitectura moderna y separada en fronte
   
 ### Metodo 1.1: Utilizar .bat para arrancar la aplicación luego de la instalación
 
-Puede darle click al archivo `twich.bat` en el directorio raíz del proyecto con el objetivo de arrancar la aplicación luego de la instalación de todos los progrramas o paquetes necesarios, para su buen funcionamiento.
+Puede darle click al archivo `twich.bat` en el directorio raíz del proyecto con el objetivo de arrancar la aplicación luego de la instalación de todos los programas y/o paquetes necesarios, para su buen funcionamiento.
 
 ### Método 2: Instalación con Docker
 
@@ -216,11 +216,12 @@ TWITCH_DOWNLOADER/
 │   │   └── utils/        # Utilidades
 │   ├── tests/            # Tests
 │   └── config/           # Configuración
-├── frontend/
-│   ├── src/              # Código fuente
-│   ├── public/           # Archivos estáticos
-│   └── tests/            # Tests
-└── docs/                 # Documentación
+└── frontend/
+    ├── tests/            # Tests
+    ├── style.css        # Estilos CSS
+    ├── main.js          # Código principal
+    └── index.html        # HTML principal
+
 ```
 
 ### Comandos Útiles
