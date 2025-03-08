@@ -4,8 +4,6 @@ import path from 'path';
 import { extractVideoInfo } from '../utils/twitch-utils.js';
 
 // Función para iniciar descarga con streamlink
-
-// Función para descargar un stream con Streamlink
 export function startDownload(url, outputPath, quality = 'best', format = 'mp4') {
     // Validación de parámetros
     if (!url || typeof url !== 'string') {
@@ -27,24 +25,23 @@ export function startDownload(url, outputPath, quality = 'best', format = 'mp4')
         fs.mkdirSync(outputDir, { recursive: true });
     }
 
-    // Generar un nombre dinámico para evitar sobrescribir archivos
+    // Generar un nombre de archivo dinámico
     const timestamp = Date.now();
     const finalOutputPath = path.join(outputDir, `video_${timestamp}.${format}`);
 
-    // Construcción de argumentos optimizados para Streamlink
+    // Construcción de argumentos con orden correcto
     const args = [
-        '--hls-segment-timeout', '30',       // Tiempo de espera por segmento (mejor estabilidad)
-        '--hls-timeout', '1800',             // Timeout global de 30 minutos
-        '--hls-segment-attempts', '15',      // Intentos por segmento (evita fallos de conexión)
-        '--stream-segment-threads', '10',    // Mayor velocidad de descarga con más hilos
-        '--hls-live-edge', '6',              // Mantiene un buffer de 6 segmentos
-        '--retry-open', '5',                 // Reintenta abrir el stream hasta 5 veces
-        '--retry-streams', '5',              // Reintenta la conexión en caso de fallos
-        '--force',                            // Evita errores si el archivo ya existe
-        '--progress',                         // Muestra progreso en tiempo real
-        '--output', finalOutputPath,         // Ruta del archivo de salida
-        url,                                  // URL del stream
-        quality                               // Calidad seleccionada
+        '--hls-segment-timeout', '30',       // Timeout de segmentos
+        '--hls-timeout', '1800',             // Timeout total de 30 minutos
+        '--hls-segment-attempts', '15',      // Intentos por segmento
+        '--stream-segment-threads', '10',    // Más hilos para mayor velocidad
+        '--hls-live-edge', '6',              // Buffer de 6 segmentos
+        '--retry-open', '5',                 // Reintentos de apertura
+        '--retry-streams', '5',              // Reintentos de flujo
+        '--progress', 'yes',                 // Muestra progreso
+        '-o', finalOutputPath,               // Guarda el archivo en la ruta indicada
+        url,                                 // URL del stream (DEBE IR AL FINAL)
+        quality                              // Calidad del stream (DEBE IR AL FINAL)
     ];
 
     console.log(`📡 Iniciando descarga de: ${url}`);
