@@ -7,12 +7,16 @@ import { extractVideoInfo } from '../utils/twitch-utils.js';
 export function startDownload(url, outputPath, quality, format) {
     const args = [
         url,
-        quality,
-        '--stream-segment-threads', '5',
+        quality || 'best',
+        '--stream-segment-threads', '3',          // Reducido de 5 a 3 para mayor estabilidad
         '--hls-live-restart',
         '--force',
-        '--progress',
-        'yes',
+        '--progress', 'yes',
+        '--hls-timeout', '60',                    // Aumenta el tiempo de espera a 60 segundos
+        '--stream-segment-attempts', '5',         // Añade reintentos para segmentos fallidos
+        '--stream-timeout', '60',                 // Timeout general para la transmisión
+        '--retry-streams', '5',                   // Reintentos para la conexión inicial
+        '--retry-open', '3',                      // Reintentos al abrir la transmisión
         '-o', outputPath
     ];
     
