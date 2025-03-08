@@ -4,26 +4,78 @@ import path from 'path';
 import { extractVideoInfo } from '../utils/twitch-utils.js';
 
 // Función para iniciar descarga con streamlink
-export function startDownload(url, outputPath, quality, format) {
+
+// Función para descargar un stream con Streamlink
+export function startDownload(url, outputPath, quality = 'best', format = 'mp4') {
+    // Validación de parámetros
+    if (!url || typeof url !== 'string') {
+        throw new Error('❌ La URL proporcionada no es válida.');
+    }
+    if (!outputPath || typeof outputPath !== 'string') {
+        throw new Error('❌ La ruta de salida proporcionada no es válida.');
+    }
+    if (!['best', 'worst', '1080p', '720p', '480p', '360p', '160p'].includes(quality)) {
+        throw new Error('❌ La calidad proporcionada no es válida.');
+    }
+    if (!['mp4', 'mkv', 'flv', 'avi'].includes(format)) {
+        throw new Error('❌ El formato proporcionado no es válido.');
+    }
+
+    // Asegurar que el directorio de salida exista
+    const outputDir = path.dirname(outputPath);
+    if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    // Generar un nombre dinámico para evitar sobrescribir archivos
+    const timestamp = Date.now();
+    const finalOutputPath = path.join(outputDir, `video_${timestamp}.${format}`);
+
+    // Construcción de argumentos optimizados para Streamlink
     const args = [
-        url,
-        quality || 'best',
-        '--stream-segment-threads', '3',          // Reducido de 5 a 3 para mayor estabilidad
-        '--hls-live-restart',
-        '--force',
-        '--progress', 'yes',
-        '--hls-timeout', '60',                    // Aumenta el tiempo de espera a 60 segundos
-        '--stream-segment-attempts', '5',         // Añade reintentos para segmentos fallidos
-        '--stream-timeout', '60',                 // Timeout general para la transmisión
-        '--retry-streams', '5',                   // Reintentos para la conexión inicial
-        '--retry-open', '3',                      // Reintentos al abrir la transmisión
-        '-o', outputPath
+        '--hls-segment-timeout', '30',       // Tiempo de espera por segmento (mejor estabilidad)
+        '--hls-timeout', '1800',             // Timeout global de 30 minutos
+        '--hls-segment-attempts', '15',      // Intentos por segmento (evita fallos de conexión)
+        '--stream-segment-threads', '10',    // Mayor velocidad de descarga con más hilos
+        '--hls-live-edge', '6',              // Mantiene un buffer de 6 segmentos
+        '--retry-open', '5',                 // Reintenta abrir el stream hasta 5 veces
+        '--retry-streams', '5',              // Reintenta la conexión en caso de fallos
+        '--force',                            // Evita errores si el archivo ya existe
+        '--progress',                         // Muestra progreso en tiempo real
+        '--output', finalOutputPath,         // Ruta del archivo de salida
+        url,                                  // URL del stream
+        quality                               // Calidad seleccionada
     ];
-    
-    console.log('Iniciando descarga con streamlink:', args.join(' '));
-    
-    return spawn('streamlink', args);
+
+    console.log(`📡 Iniciando descarga de: ${url}`);
+    console.log(`📂 Guardando en: ${finalOutputPath}\n`);
+
+    // Ejecutar Streamlink
+    const downloadProcess = spawn('streamlink', args);
+
+    // Capturar salida del proceso
+    downloadProcess.stdout.on('data', (data) => {
+        console.log(`[📥] ${data.toString()}`);
+    });
+
+    // Capturar errores
+    downloadProcess.stderr.on('data', (data) => {
+        console.error(`[⚠️ ERROR] ${data.toString()}`);
+    });
+
+    // Manejo del cierre del proceso
+    downloadProcess.on('close', (code) => {
+        if (code === 0) {
+            console.log(`✅ Descarga completada: ${finalOutputPath}`);
+        } else {
+            console.error(`❌ Error en la descarga (Código ${code})`);
+        }
+    });
+
+    return downloadProcess;
 }
+
+
 
 // Configurar manejadores de eventos para el proceso de descarga
 export function setupProcessHandlers(process, downloadId, quality, activeDownloads, DOWNLOADS_DB) {
