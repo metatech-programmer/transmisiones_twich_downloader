@@ -95,3 +95,9 @@ dist
 *.userprefs
 *.vspscc
 *.vssscc
+
+
+# media files
+*.mp4
+*.mp3
+*.mp
