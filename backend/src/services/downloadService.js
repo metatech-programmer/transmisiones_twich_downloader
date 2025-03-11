@@ -7,22 +7,33 @@ import { extractVideoInfo } from '../utils/twitch-utils.js';
 export function startDownload(url, outputPath, quality, format) {
     const args = [
         url,
-        quality || 'best',
-        '--stream-segment-threads', '3',          // Reducido de 5 a 3 para mayor estabilidad
+        quality,
+        '--stream-segment-threads', '10',
         '--hls-live-restart',
         '--force',
-        '--progress', 'yes',
-        '--hls-timeout', '60',                    // Aumenta el tiempo de espera a 60 segundos
-        '--stream-segment-attempts', '5',         // Añade reintentos para segmentos fallidos
-        '--stream-timeout', '60',                 // Timeout general para la transmisión
-        '--retry-streams', '5',                   // Reintentos para la conexión inicial
-        '--retry-open', '3',                      // Reintentos al abrir la transmisión
+        '--progress',
+        'yes',
+        '--ringbuffer-size', '128M',
         '-o', outputPath
     ];
     
     console.log('Iniciando descarga con streamlink:', args.join(' '));
     
-    return spawn('streamlink', args);
+    const downloadProcess = spawn('streamlink', args);
+
+    downloadProcess.stdout.on('data', (data) => {
+        console.log(`stdout: ${data}`);
+    });
+
+    downloadProcess.stderr.on('data', (data) => {
+        console.error(`stderr: ${data}`);
+    });
+
+    downloadProcess.on('close', (code) => {
+        console.log(`Proceso de descarga finalizado con código ${code}`);
+    });
+
+    return downloadProcess;
 }
 
 // Configurar manejadores de eventos para el proceso de descarga
