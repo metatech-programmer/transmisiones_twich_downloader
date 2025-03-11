@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!isNaN(downloadedSize) && !isNaN(totalSize) && totalSize > 0) {
                     // Actualizar progreso
                     const progress = Math.min(Math.round((downloadedSize / totalSize) * 100), 100);
-                    showStatus(`Descargando video en progreso... %`, 'info');
+                    showStatus(`Descargando video en progreso... ${progress}%`, 'info');
                 } else {
                     showStatus('Descargando video... ', 'info');
                 }

@@ -12,29 +12,31 @@ const activeDownloads = new Map();
 export const startDownloadController = async (req, res) => {
     try {
         const { url, quality, format } = req.body;
-        
+
         // Validar URL
         if (!url || !url.includes('twitch.tv')) {
             return res.status(400).json({ message: 'URL de Twitch inválida' });
         }
-        
+
         // Generar ID único para esta descarga
         const downloadId = uuidv4();
-        
+
         // Procesar URL para obtener información del stream
         const streamInfo = await processStreamUrl(url);
-        
+
         // Configurar nombre del archivo
         const fileName = `${streamInfo.channelName}_${streamInfo.videoId || 'live'}_${streamInfo.title.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.${format}`;
         const outputPath = path.join(DOWNLOADS_DIR, fileName);
-        
+
         // Iniciar proceso de descarga
         const downloadProcess = startDownload(url, outputPath, quality, format);
-        
+
         // Guardar información del proceso
         activeDownloads.set(downloadId, {
             process: downloadProcess,
             info: {
+                totalSize: 0,
+                downloadedSize: 0,
                 url,
                 outputPath,
                 progress: 0,
@@ -43,10 +45,10 @@ export const startDownloadController = async (req, res) => {
                 streamInfo
             }
         });
-        
+
         // Establecer manejadores de eventos para el proceso
         setupProcessHandlers(downloadProcess, downloadId, quality, activeDownloads, DOWNLOADS_DB);
-        
+
         res.status(200).json({
             message: 'Descarga iniciada',
             downloadId
@@ -59,14 +61,17 @@ export const startDownloadController = async (req, res) => {
 
 export const getDownloadStatusController = (req, res) => {
     const { downloadId } = req.params;
-    
+
     if (!activeDownloads.has(downloadId)) {
         return res.status(404).json({ message: 'Descarga no encontrada' });
     }
-    
+
     const download = activeDownloads.get(downloadId);
-    
+
     res.json({
+        id: downloadId,
+        downloadedSize: download.info.downloadedSize,
+        totalSize: download.info.totalSize,
         status: download.info.status,
         progress: download.info.progress,
         error: download.info.error
@@ -82,3 +87,5 @@ export const getDownloadsController = (req, res) => {
         res.status(500).json({ message: 'Error al obtener descargas' });
     }
 };
+
+
