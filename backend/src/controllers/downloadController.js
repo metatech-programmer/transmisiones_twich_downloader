@@ -28,38 +28,58 @@ export const startDownloadController = async (req, res) => {
         const fileName = `${streamInfo.channelName}_${streamInfo.videoId || 'live'}_${streamInfo.title.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.${format}`;
         const outputPath = path.join(DOWNLOADS_DIR, fileName);
 
-        // Iniciar proceso de descarga (suponiendo que startDownload ya está definida)
+        // Iniciar proceso de descarga
         const downloadProcess = startDownload(url, outputPath, quality, format);
 
-        // Iniciar el tracker que se ejecutará continuamente y enviará datos cada segundo
-        const stopTracker = await trackDownloadProgress(outputPath, (error, { sizeDownloaded, downloadSpeed }) => {
+        let stopTracker = null;
 
+        // Iniciar el tracker
+        stopTracker = await trackDownloadProgress(outputPath, (error, { sizeDownloaded, downloadSpeed }) => {
             let sizeDownloadedVOD = 0;
             let speedDataVOD = 0;
 
             if (error) {
-                console.error('Error en el tracker:', error);
+                console.error('Error en el tracker:', {
+                    message: 'Archivo no encontrado o aun no creado ...',
+                    error: error.message
+                });
             } else {
                 sizeDownloadedVOD = sizeDownloaded;
                 speedDataVOD = downloadSpeed;
-
             }
-            activeDownloads.set(downloadId, {
-                process: downloadProcess,
-                info: {
-                    url,
-                    outputPath,
-                    sizeDownloadedVOD,
-                    speedDataVOD,
-                    status: 'downloading',
-                    error: null,
-                    streamInfo
-                }
-            });
+
+            // Solo actualizar si la descarga sigue activa
+            if (activeDownloads.has(downloadId)) {
+                activeDownloads.set(downloadId, {
+                    process: downloadProcess,
+                    stopTracker,
+                    info: {
+                        url,
+                        outputPath,
+                        sizeDownloadedVOD,
+                        speedDataVOD,
+                        status: 'downloading',
+                        error: null,
+                        streamInfo
+                    }
+                });
+            }
         });
 
-        // Guardar información del proceso
-
+        // Guardar información del proceso con el stopTracker
+        activeDownloads.set(downloadId, {
+            process: downloadProcess,
+            stopTracker,
+            info: {
+                url,
+                outputPath,
+                status: 'downloading',
+                error: null,
+                streamInfo,
+                sizeDownloadedVOD: 0,
+                speedDataVOD: 0
+            }
+        });
 
         // Establecer manejadores de eventos para el proceso
         setupProcessHandlers(downloadProcess, downloadId, quality, activeDownloads, DOWNLOADS_DB);
@@ -103,4 +123,55 @@ export const getDownloadsController = (req, res) => {
     }
 };
 
+export const cancelDownloadController = (req, res) => {
+    const { downloadId } = req.params;
 
+    if (!activeDownloads.has(downloadId)) {
+        return res.status(404).json({ message: 'Descarga no encontrada' });
+    }
+
+    const download = activeDownloads.get(downloadId);
+    
+    try {
+        // Detener el tracker primero
+        if (download.stopTracker) {
+            download.stopTracker();
+        }
+
+        // Actualizar estado
+        download.info.status = 'cancelled';
+        download.info.error = 'Descarga cancelada por el usuario';
+        
+        // Matar el proceso de descarga
+        if (download.process) {
+            download.process.on('exit', () => {
+                try {
+                    // Intentar eliminar el archivo después de que el proceso termine
+                    if (fs.existsSync(download.info.outputPath)) {
+                        setTimeout(() => {
+                            try {
+                                fs.unlinkSync(download.info.outputPath);
+                            } catch (deleteError) {
+                                console.error('Error al eliminar archivo:', deleteError);
+                            }
+                        }, 1000);
+                    }
+                } catch (error) {
+                    console.error('Error al verificar/eliminar archivo:', error);
+                }
+            });
+
+            download.process.kill();
+        }
+        
+        // Mantener la descarga activa por un momento para que el frontend pueda obtener el estado final
+        setTimeout(() => {
+            activeDownloads.delete(downloadId);
+        }, 5000);
+        
+        res.json({ message: 'Descarga cancelada exitosamente' });
+    } catch (error) {
+        console.error('Error al cancelar descarga:', error);
+        res.status(500).json({ message: 'Error al cancelar la descarga' });
+    }
+};

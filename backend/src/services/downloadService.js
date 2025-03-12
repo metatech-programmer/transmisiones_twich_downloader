@@ -5,17 +5,22 @@ import { extractVideoInfo } from '../utils/twitch-utils.js';
 
 // Función para iniciar descarga con streamlink
 export function startDownload(url, outputPath, quality, format) {
+    // Siguiendo el orden correcto de argumentos para streamlink:
+    // 1. URL del stream
+    // 2. Calidad
+    // 3. Opciones adicionales
+    // 4. Opción de salida (-o) y ruta
     const args = [
-        url,
-        quality || 'best',
-        '--force',
+        url,                                 // 1. URL del stream
+        quality || 'best',                   // 2. Calidad
+        '--force',                          // 3. Opciones adicionales
         '--hls-live-restart',
         '--ringbuffer-size', '256M',
-        '--stream-timeout', '120',           // Incrementa el tiempo de espera general a 120 segundos
-        '--stream-segment-timeout', '60',    // Incrementa el tiempo de espera por segmento a 60 segundos
+        '--stream-timeout', '120',
+        '--stream-segment-timeout', '60',
         '--hls-live-edge', '2',
         '--retry-streams', '3',
-        '-o', outputPath
+        '-o', outputPath                     // 4. Opción de salida y ruta
     ];
     
     console.log('Iniciando descarga con streamlink:', args.join(' '));
@@ -39,6 +44,11 @@ export function startDownload(url, outputPath, quality, format) {
 
 // Configurar manejadores de eventos para el proceso de descarga
 export function setupProcessHandlers(process, downloadId, quality, activeDownloads, DOWNLOADS_DB) {
+    if (!activeDownloads.has(downloadId)) {
+        console.error('No se encontró la descarga activa:', downloadId);
+        return;
+    }
+
     const download = activeDownloads.get(downloadId);
     let lastProgress = 0;
     let isCompleted = false;
@@ -47,6 +57,8 @@ export function setupProcessHandlers(process, downloadId, quality, activeDownloa
     
     // Capturar salida estándar para extraer progreso
     process.stdout.on('data', (data) => {
+        if (!activeDownloads.has(downloadId)) return;
+        
         const output = data.toString();
         console.log(`[stdout] ${output}`);
         
@@ -75,16 +87,20 @@ export function setupProcessHandlers(process, downloadId, quality, activeDownloa
         // Detectar finalización
         if (output.includes('Download Complete') || output.includes('Stream ended')) {
             isCompleted = true;
-            download.info.status = 'completed';
-            download.info.progress = 100;
+            if (activeDownloads.has(downloadId)) {
+                download.info.status = 'completed';
+                download.info.progress = 100;
+            }
         }
     });
     
     // Capturar errores
     process.stderr.on('data', (data) => {
+        if (!activeDownloads.has(downloadId)) return;
+        
         const error = data.toString();
         console.error(`[stderr] ${error}`);
-        if (!isCompleted) {
+        if (!isCompleted && activeDownloads.has(downloadId)) {
             download.info.error = error;
         }
     });
@@ -92,6 +108,13 @@ export function setupProcessHandlers(process, downloadId, quality, activeDownloa
     // Cuando finaliza el proceso
     process.on('close', async (code) => {
         console.log(`Proceso finalizado con código: ${code}`);
+        
+        if (!activeDownloads.has(downloadId)) {
+            console.log('Descarga ya no está activa, posiblemente cancelada');
+            return;
+        }
+        
+        const download = activeDownloads.get(downloadId);
         
         if (code === 0 || isCompleted) {
             download.info.status = 'completed';
@@ -115,7 +138,7 @@ export function setupProcessHandlers(process, downloadId, quality, activeDownloa
                     date: new Date().toISOString()
                 });
                 
-                // Limitar a 3 descargas recientes
+                // Limitar a 5 descargas recientes
                 if (downloadsData.downloads.length > 5) {
                     downloadsData.downloads = downloadsData.downloads.slice(0, 5);
                 }
@@ -124,15 +147,14 @@ export function setupProcessHandlers(process, downloadId, quality, activeDownloa
             } catch (error) {
                 console.error('Error al procesar video descargado:', error);
             }
-        } else {
+        } else if (download.info.status !== 'cancelled') {
+            // Solo marcar como fallido si no fue cancelado
             download.info.status = 'failed';
         }
         
-        // Limpiar la descarga después de 5 minutos en lugar de 1 hora
+        // Limpiar la descarga después de 5 minutos
         setTimeout(() => {
             activeDownloads.delete(downloadId);
-        }, 300000); // Eliminar después de 5 minutos
+        }, 300000);
     });
 }
-
-

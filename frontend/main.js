@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     const downloadBtn = document.getElementById('downloadBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
     const streamUrlInput = document.getElementById('streamUrl');
     const qualitySelect = document.getElementById('quality');
     const formatSelect = document.getElementById('format');
@@ -8,9 +9,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const downloadsList = document.getElementById('downloads-list');
     const noDownloadsText = document.getElementById('no-downloads');
 
-
     let API_BASE_URL = 'http://localhost:8091/api';
-
+    let currentDownloadId = null;
 
     if (window.location.hostname === 'localhost') {
 
@@ -22,11 +22,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     }
 
-    const activeDownloads = new Map(); // Add this line to define activeDownloads
+    const activeDownloads = new Map(); 
 
-    // Cargar descargas previas y actualizar en tiempo real
     loadDownloads();
-    setInterval(loadDownloads, 5000); // Actualizar cada 5 segundos
+    setInterval(loadDownloads, 5000); 
 
     downloadBtn.addEventListener('click', function () {
         const streamUrl = streamUrlInput.value.trim();
@@ -49,8 +48,10 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(response => response.json())
             .then(data => {
                 if (data.downloadId) {
+                    currentDownloadId = data.downloadId;
                     showStatus('Descargando video...', 'info');
                     loader.classList.remove('hidden');
+                    cancelBtn.classList.remove('hidden');
                     trackDownloadProgress(data.downloadId);
                 } else {
                     throw new Error(data.message || 'Error desconocido');
@@ -60,7 +61,35 @@ document.addEventListener('DOMContentLoaded', function () {
                 showStatus(`Error: ${error.message}`, 'error');
                 downloadBtn.disabled = false;
                 loader.classList.add('hidden');
+                cancelBtn.classList.add('hidden');
             });
+    });
+
+    cancelBtn.addEventListener('click', function() {
+        if (!currentDownloadId) return;
+
+        cancelBtn.disabled = true;
+        
+        fetch(`${API_BASE_URL}/download/${currentDownloadId}/cancel`, {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Limpiar el intervalo de progreso primero
+            clearDownloadInterval(currentDownloadId);
+            
+            showStatus('Descarga cancelada', 'info');
+            downloadBtn.disabled = false;
+            loader.classList.add('hidden');
+            cancelBtn.classList.add('hidden');
+            cancelBtn.disabled = false;
+            currentDownloadId = null;
+            loadDownloads();
+        })
+        .catch(error => {
+            showStatus(`Error al cancelar la descarga: ${error.message}`, 'error');
+            cancelBtn.disabled = false;
+        });
     });
 
     function isValidTwitchUrl(url) {
@@ -74,18 +103,37 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function trackDownloadProgress(downloadId) {
+        // Limpiar cualquier intervalo existente primero
+        clearDownloadInterval(downloadId);
+        
         let failedAttempts = 0;
         const maxFailedAttempts = 3;
 
         const progressInterval = setInterval(async () => {
             try {
+                if (!currentDownloadId) {
+                    clearInterval(progressInterval);
+                    return;
+                }
+
                 const response = await fetch(`${API_BASE_URL}/status/${downloadId}`);
                 if (!response.ok) {
                     throw new Error('Error en la respuesta del servidor');
                 }
 
                 const data = await response.json();
-                
+
+                // Si la descarga ya no está activa, detener el seguimiento
+                if (!data || data.status === 'cancelled') {
+                    clearInterval(progressInterval);
+                    showStatus('Descarga cancelada', 'info');
+                    downloadBtn.disabled = false;
+                    loader.classList.add('hidden');
+                    cancelBtn.classList.add('hidden');
+                    currentDownloadId = null;
+                    loadDownloads();
+                    return;
+                }
 
                 const sizeDownloaded = data.downloadedSize;
                 const speedData = data.downloadSpeed;
@@ -102,6 +150,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     showStatus('¡Descarga completada!', 'success');
                     downloadBtn.disabled = false;
                     loader.classList.add('hidden');
+                    cancelBtn.classList.add('hidden');
+                    currentDownloadId = null;
                     loadDownloads();
                     return;
                 } else if (data.status === 'failed') {
@@ -109,6 +159,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     showStatus(`Error: ${data.error || 'Error desconocido'}`, 'error');
                     downloadBtn.disabled = false;
                     loader.classList.add('hidden');
+                    cancelBtn.classList.add('hidden');
+                    currentDownloadId = null;
                     return;
                 }
 
@@ -124,20 +176,20 @@ document.addEventListener('DOMContentLoaded', function () {
                     showStatus('Error: Se perdió la conexión con el servidor', 'error');
                     downloadBtn.disabled = false;
                     loader.classList.add('hidden');
+                    cancelBtn.classList.add('hidden');
+                    currentDownloadId = null;
                 }
             }
-        }, 1000); // Actualizar cada segundo en lugar de cada 2 segundos
+        }, 1000);
 
-        // Guardar el ID del intervalo para limpieza
         activeDownloads.set(downloadId, { intervalId: progressInterval });
     }
 
-    // Añadir función para limpiar intervalos antiguos
     function clearDownloadInterval(downloadId) {
         const download = activeDownloads.get(downloadId);
         if (download?.intervalId) {
             clearInterval(download.intervalId);
-            activeDownloads.delete(downloadId); // Update this line to delete the entry from the map
+            activeDownloads.delete(downloadId); 
         }
     }
 
@@ -174,6 +226,5 @@ document.addEventListener('DOMContentLoaded', function () {
         return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
     }
 
-    // Ocultar el loader al inicio
     loader.classList.add('hidden');
 });
