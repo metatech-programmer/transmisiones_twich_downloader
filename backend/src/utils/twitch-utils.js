@@ -1,11 +1,11 @@
-import { promises as fs } from 'fs';
+import fs from 'fs';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { log } from 'console';
 
 const execAsync = promisify(exec);
 
 /**
+ * 
  * Procesa una URL de Twitch para obtener información del stream.
  * @param {string} url URL de Twitch (canal o VOD).
  * @returns {Promise<object>} Información del stream.
@@ -88,6 +88,72 @@ async function extractVideoInfo(filePath) {
     }
 }
 
+
+/**
+ * Monitorea el progreso de la descarga en tiempo real.
+ * Se ejecuta cada segundo y llama al callback con:
+ *   - sizeDownloaded (número, MB)
+ *   - downloadSpeed (número, MB/s)
+ *
+ * @param {string} outputPath Ruta del archivo descargado.
+ * @param {function} callback Función callback(err, { sizeDownloaded, downloadSpeed })
+ * @returns {function} Función para detener el monitoreo.
+ */
+async function trackDownloadProgress(outputPath, callback) {
+    let lastSize = 0;      // en bytes
+    let lastTime = Date.now(); // tiempo en milisegundos
+
+    // Verificar que el callback sea una función
+    if (typeof callback !== 'function') {
+        throw new Error('El callback debe ser una función.');
+    }
+
+    const intervalId = setInterval(async () => {
+        try {
+            // Obtener las estadísticas del archivo
+            const stats = await fs.promises.stat(outputPath);
+            const currentSize = stats.size; // en bytes
+            const currentTime = Date.now();
+
+            // Convertir tamaño a MB (número)
+            const sizeInMB = currentSize / (1024 * 1024);
+
+            // Calcular diferencia de tiempo en segundos y diferencia de tamaño en MB
+            const timeDeltaSeconds = (currentTime - lastTime) / 1000;
+            const sizeDeltaMB = (currentSize - lastSize) / (1024 * 1024);
+
+            // Velocidad de descarga en MB/s
+            const downloadSpeed = timeDeltaSeconds > 0 ? sizeDeltaMB / timeDeltaSeconds : 0;
+
+            // Actualizar valores para el siguiente intervalo
+            lastSize = currentSize;
+            lastTime = currentTime;
+
+            // Llamar al callback con datos numéricos
+            callback(null, {
+                sizeDownloaded: sizeInMB.toFixed(2),        // Número: MB descargados
+                downloadSpeed: downloadSpeed.toFixed(2)     // Número: MB/s
+            });
+
+            // Mostrar en consola con formato
+        } catch (err) {
+            // Llamar al callback con el error si ocurre
+            callback({
+                message: 'Error al obtener estadísticas del archivo',
+                error: err
+            }, {
+                sizeDownloaded: 0,
+                downloadSpeed: 0
+            });
+        }
+    }, 1000); // Monitorear cada segundo
+
+    // Retornamos una función para detener el monitoreo si se necesita
+    return () => clearInterval(intervalId);
+}
+
+
+
 /**
  * Formatea segundos en formato HH:MM:SS.
  * @param {number} seconds Duración en segundos.
@@ -107,4 +173,4 @@ function formatDuration(seconds) {
     ].join(':');
 }
 
-export { processStreamUrl, extractVideoInfo };
+export { processStreamUrl, extractVideoInfo, trackDownloadProgress };

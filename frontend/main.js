@@ -85,17 +85,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 const data = await response.json();
+                console.log(data);
+                
 
-                // Asegúrate de que los valores sean números válidos
-                const downloadedSize = parseInt(data.downloadedSize, 10);
-                const totalSize = parseInt(data.totalSize, 10);
+                const sizeDownloaded = data.downloadedSize;
+                const speedData = data.downloadSpeed;
 
-                if (!isNaN(downloadedSize) && !isNaN(totalSize) && totalSize > 0) {
-                    // Actualizar progreso
-                    const progress = Math.min(Math.round((downloadedSize / totalSize) * 100), 100);
-                    showStatus(`Descargando video en progreso... ${progress}%`, 'info');
+                if (!isNaN(sizeDownloaded) && sizeDownloaded > 0) {
+                    showStatus(`Descargando video en progreso... ${sizeDownloaded} MB descargados a ${speedData} MB/s`, 'info');
                 } else {
-                    showStatus('Descargando video... ', 'info');
+                    showStatus('Descargando video...', 'info');
                 }
 
                 // Verificar estado

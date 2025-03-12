@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
 import path from 'path';
-import { extractVideoInfo, processStreamUrl } from '../utils/twitch-utils.js';
+import { trackDownloadProgress, processStreamUrl } from '../utils/twitch-utils.js';
 import { startDownload, setupProcessHandlers } from '../services/downloadService.js';
 import config from '../../config/index.js';
 
@@ -28,39 +28,39 @@ export const startDownloadController = async (req, res) => {
         const fileName = `${streamInfo.channelName}_${streamInfo.videoId || 'live'}_${streamInfo.title.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.${format}`;
         const outputPath = path.join(DOWNLOADS_DIR, fileName);
 
-        // Iniciar proceso de descarga
+        // Iniciar proceso de descarga (suponiendo que startDownload ya está definida)
         const downloadProcess = startDownload(url, outputPath, quality, format);
-        let sizeDownloaded = 0;
-        let sizeTotal = 0; 
-                
 
-        extractVideoInfo(outputPath).then(videoInfo => {
-            sizeTotal = videoInfo.sizeMB;
-        })
+        // Iniciar el tracker que se ejecutará continuamente y enviará datos cada segundo
+        const stopTracker = await trackDownloadProgress(outputPath, (error, { sizeDownloaded, downloadSpeed }) => {
 
-        downloadProcess.stderr.on('data', (data) => {
-            console.error(`stderr: ${data}`);
-        });
+            let sizeDownloadedVOD = 0;
+            let speedDataVOD = 0;
 
-        downloadProcess.stdout.on('data', (data) => {
-            sizeDownloaded += data.length;
-            activeDownloads.get(downloadId).info.downloadedSize = sizeDownloaded;
+            if (error) {
+                console.error('Error en el tracker:', error);
+            } else {
+                console.log(`Tamaño descargado: ${sizeDownloaded} MB, Velocidad: ${downloadSpeed} MB/s`);
+                sizeDownloadedVOD = sizeDownloaded;
+                speedDataVOD = downloadSpeed;
+
+            }
+            activeDownloads.set(downloadId, {
+                process: downloadProcess,
+                info: {
+                    url,
+                    outputPath,
+                    sizeDownloadedVOD,
+                    speedDataVOD,
+                    status: 'downloading',
+                    error: null,
+                    streamInfo
+                }
+            });
         });
 
         // Guardar información del proceso
-        activeDownloads.set(downloadId, {
-            process: downloadProcess,
-            info: {
-                totalSize: sizeTotal,
-                downloadedSize: sizeDownloaded,
-                url,
-                outputPath,
-                progress: 0,
-                status: 'downloading',
-                error: null,
-                streamInfo
-            }
-        });
+
 
         // Establecer manejadores de eventos para el proceso
         setupProcessHandlers(downloadProcess, downloadId, quality, activeDownloads, DOWNLOADS_DB);
@@ -86,8 +86,8 @@ export const getDownloadStatusController = (req, res) => {
 
     res.json({
         id: downloadId,
-        downloadedSize: download.info.downloadedSize,
-        totalSize: download.info.totalSize,
+        downloadedSize: download.info.sizeDownloadedVOD,
+        downloadSpeed: download.info.speedDataVOD,
         status: download.info.status,
         progress: download.info.progress,
         error: download.info.error
