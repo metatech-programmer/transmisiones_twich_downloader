@@ -85,7 +85,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 const data = await response.json();
-                console.log(data);
                 
 
                 const sizeDownloaded = data.downloadedSize;

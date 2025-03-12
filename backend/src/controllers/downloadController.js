@@ -40,7 +40,6 @@ export const startDownloadController = async (req, res) => {
             if (error) {
                 console.error('Error en el tracker:', error);
             } else {
-                console.log(`Tamaño descargado: ${sizeDownloaded} MB, Velocidad: ${downloadSpeed} MB/s`);
                 sizeDownloadedVOD = sizeDownloaded;
                 speedDataVOD = downloadSpeed;
 
