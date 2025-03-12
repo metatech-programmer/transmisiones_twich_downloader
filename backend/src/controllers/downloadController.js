@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
 import path from 'path';
-import { processStreamUrl } from '../utils/twitch-utils.js';
+import { extractVideoInfo, processStreamUrl } from '../utils/twitch-utils.js';
 import { startDownload, setupProcessHandlers } from '../services/downloadService.js';
 import config from '../../config/index.js';
 
@@ -30,13 +30,29 @@ export const startDownloadController = async (req, res) => {
 
         // Iniciar proceso de descarga
         const downloadProcess = startDownload(url, outputPath, quality, format);
+        let sizeDownloaded = 0;
+        let sizeTotal = 0; 
+                
+
+        extractVideoInfo(outputPath).then(videoInfo => {
+            sizeTotal = videoInfo.sizeMB;
+        })
+
+        downloadProcess.stderr.on('data', (data) => {
+            console.error(`stderr: ${data}`);
+        });
+
+        downloadProcess.stdout.on('data', (data) => {
+            sizeDownloaded += data.length;
+            activeDownloads.get(downloadId).info.downloadedSize = sizeDownloaded;
+        });
 
         // Guardar información del proceso
         activeDownloads.set(downloadId, {
             process: downloadProcess,
             info: {
-                totalSize: 0,
-                downloadedSize: 0,
+                totalSize: sizeTotal,
+                downloadedSize: sizeDownloaded,
                 url,
                 outputPath,
                 progress: 0,

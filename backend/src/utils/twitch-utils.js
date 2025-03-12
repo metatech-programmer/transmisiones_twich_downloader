@@ -75,6 +75,7 @@ async function extractVideoInfo(filePath) {
         const duration = parseFloat(stdout.trim());
 
         return {
+            sizeMB: fileSizeInMB,
             size: `${fileSizeInMB.toFixed(2)} MB`,
             duration: formatDuration(duration),
         };
