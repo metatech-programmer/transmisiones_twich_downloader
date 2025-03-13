@@ -111,7 +111,7 @@ async function trackDownloadProgress(outputPath, callback) {
     const intervalId = setInterval(async () => {
         try {
             // Obtener las estadísticas del archivo
-            const stats = await fs.promises.stat(outputPath);
+            const stats = await fs.stat(outputPath);
             const currentSize = stats.size; // en bytes
             const currentTime = Date.now();
 
