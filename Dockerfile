@@ -1,25 +1,36 @@
-# Imagen base de Node.js
-FROM node:18-alpine
+# ============================
+# Etapa 1: Construcción del backend
+# ============================
+FROM node:18-alpine AS backend-build
+WORKDIR /app/backend
+COPY backend/package.json backend/package-lock.json ./
+RUN npm install --production
+COPY backend . 
 
-# Instalar dependencias necesarias incluyendo streamlink desde el repositorio de Alpine
+# ============================
+# Etapa 2: Construcción del frontend con Parcel
+# ============================
+FROM node:18-alpine AS frontend-build
+WORKDIR /app/frontend
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm install
+COPY frontend . 
+RUN npm run build  # Parcel generará la carpeta `dist/`
+
+# ============================
+# Etapa 3: Imagen final
+# ============================
+FROM node:18-alpine
+WORKDIR /app
+
+# Instalar dependencias necesarias incluyendo streamlink
 RUN apk add --no-cache ffmpeg python3 streamlink
 
-# Crear directorio de trabajo
-WORKDIR /app
+# Copiar el backend ya construido sin node_modules innecesarios
+COPY --from=backend-build /app/backend /app/backend
 
-# Copiar todo el proyecto
-COPY . .
-
-# Instalar dependencias del backend
-WORKDIR /app/backend
-RUN if [ -f "package.json" ]; then npm install; fi
-
-# Instalar dependencias del frontend
-WORKDIR /app/frontend
-RUN if [ -f "package.json" ]; then npm install; fi
-
-# Volver al directorio raíz
-WORKDIR /app
+# Copiar solo los archivos compilados del frontend
+COPY --from=frontend-build /app/frontend/dist /app/frontend/dist
 
 # Crear el directorio de descargas si no existe
 RUN mkdir -p backend/downloads
